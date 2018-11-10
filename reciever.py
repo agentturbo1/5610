@@ -29,7 +29,7 @@ def rad2dms(rad):
 #
 pipe_input = np.array(sys.stdin.read().split('\n'))  # read in standard output
 if not pipe_input:
-    print('data not input')
+    print('data not inpu')
 num_time_steps = pipe_input.shape[0]
 sat_output = np.empty(shape=(num_time_steps, 5))
 sat_output = []
