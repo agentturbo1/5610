@@ -27,36 +27,43 @@ def rad2dms(rad):
 # ****************#
 # Call the input bm_sat_output, and then it will output write_to_output#
 #
-pipe_input = np.array(sys.stdin.read().split('\n'))  # read in standard output
-if not pipe_input:
-    print('data not inpu')
-num_time_steps = pipe_input.shape[0]
-sat_output = np.empty(shape=(num_time_steps, 5))
-sat_output = []
-all_sat_data=[]
-all_sat_comp=[]
-index=0
-time=sat_output[0][1]
-for hh in range(np.shape(sat_output)[0]):
-    current_time=sat_output[hh][1]
-    if np.abs(current_time-time)>2:
+pipe_input_str = sys.stdin.read().rstrip()  # read in standard output
+pipe_input = np.array(pipe_input_str.split('\n'))  # split the string by line
+if pipe_input.shape[0] == 0:  # if there is no input throw an error
+    raise IOError('No satellite input provided. Pipe in input from file or other executable in standard UNIX fashion')
+num_signals = pipe_input.shape[0]  # number of messages received
+sat_input = np.empty(shape=(num_signals, 5))  # satellite input array
+
+for i, line in enumerate(pipe_input):  # convert all the data into float values and store in array
+    sat_line = np.array(line.split(' '))
+    if sat_line.shape[0] == 5:
+        sat_input[i] = np.array(sat_line, dtype='float')
+
+# Group satellite signals together for computation
+all_sat_data = []
+all_sat_comp = []
+
+time = sat_input[0][1]
+
+for hh in range(num_signals):
+    current_time = sat_input[hh][1]
+    if np.abs(current_time - time) > 2:
         all_sat_data.append(all_sat_comp)
-        all_sat_comp=[];
-        time=current_time
-    if hh==np.shape(sat_output)[0]-1:
+        all_sat_comp = []
+        time = current_time
+
+    if hh == sat_input.shape[0] - 1:
         all_sat_data.append(all_sat_comp)
 
+    all_sat_comp.append(sat_input[hh])
 
-    all_sat_comp.append(sat_output[hh])
+all_sat_data = np.array(all_sat_data)
+
 #******************#
-write_to_output=[]
+num_time_steps = all_sat_data.shape[0]
+write_to_output = []
 for y in range(num_time_steps):
     sat_data=np.squeeze(all_sat_data[y])
-
-
-
-
-
 
     num_sats=len(sat_data[:,0]);#the number of satellites above the horizon
     #I want to take 4 of the satellites we can see from random, and use their data to compute vehicle position

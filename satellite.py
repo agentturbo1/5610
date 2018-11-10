@@ -21,6 +21,7 @@ def dms2rad(degrees, minutes, seconds):
     rad = math.pi * (degrees + minutes / 60 + seconds / 3600) / 180 # just convert back to decimal degrees then to radians
     return(rad)
 
+
 def sat_pos(u, v, p, t, Radius, h_s, theta_s, dat_pi): #T his function gives the postion of the satlelline porided the given parameters
     '''
     Computes geographical position of satelite
@@ -37,7 +38,9 @@ def sat_pos(u, v, p, t, Radius, h_s, theta_s, dat_pi): #T his function gives the
     x_s = (Radius + h_s) * (u * np.cos((2 * dat_pi * t) / p + theta_s) + v * np.sin(2 * dat_pi * t / p + theta_s))
     return(x_s)
 
-pipe_input = np.array(sys.stdin.read().split('\n'))
+
+vehicle_input_str = sys.stdin.read().rstrip()
+pipe_input = np.array(vehicle_input_str.split('\n'))
 num_steps = pipe_input.shape[0]
 path_data = np.empty(shape=(num_steps, 10))
 
@@ -46,16 +49,16 @@ for i, line in enumerate(pipe_input):
     if path_point.shape[0] == 10:
         path_data[i] = np.array(path_point, dtype='float')
 
-to_be_output=[];#this will have the data from the satellites who are above the horizon appended at each step
+to_be_output = [];#this will have the data from the satellites who are above the horizon appended at each step
 linear_sat_dat = np.zeros((24 * 9))
 
 # height and Radius
 # Get the initial Satellite data
 # initial_loc = open('./data.dat', 'r')
 with open('./data.dat', 'r') as initial_loc:
-    line_index = 0;
+    line_index = 0
     for line in initial_loc.readlines():
-        current_line = np.float64(line[1:26]);
+        current_line = np.float64(line[1:26])
         if line_index == 0:
             dat_pi = current_line
         if line_index == 1:
@@ -66,8 +69,8 @@ with open('./data.dat', 'r') as initial_loc:
             sid_day = current_line
         # Now store all the rest of the data in a satellite array#
         if line_index > 3:
-            linear_sat_dat[line_index - 4] = current_line;
-        line_index += 1;
+            linear_sat_dat[line_index - 4] = current_line
+        line_index += 1
 
 for ns in range(num_steps):
     prelim_path_data=path_data[ns,:];
@@ -132,5 +135,5 @@ for ns in range(num_steps):
 
 output_array=np.squeeze(to_be_output)
 for point in output_array:
-    print '{:0.0f} {:6.16e} {:6.16e} {:6.16e} {:6.16e}'.format(point[0], point[1], point[2], point[3], point[4])
-# TODO Output the formatted results
+    sys.stdout.write('{:0.0f} {:6.16e} {:6.16e} {:6.16e} {:6.16e}\n'.format(point[0],
+                                                                            point[1], point[2], point[3], point[4]))
