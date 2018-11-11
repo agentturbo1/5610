@@ -1,7 +1,5 @@
-# now, get all the data from the .dat file
 # Satellite Program#
 # ****Compute the Cartesian Location of the Vehicle****#
-# get the data from a particular line#
 import numpy as np
 import sys
 import math
@@ -20,30 +18,67 @@ def dms2rad(degrees, minutes, seconds):
     :return: number
     '''
     rad = math.pi * (
-                degrees + minutes / 60 + seconds / 3600) / 180  # just convert back to decimal degrees then to radians
-    return (rad)
+            degrees + minutes / 60 + seconds / 3600) / 180  # just convert back to decimal degrees then to radians
+    return rad
 
 
-def sat_pos(u, v, p, t, Radius, h_s, theta_s,
-            dat_pi):  # T his function gives the postion of the satlelline porided the given parameters
+def sat_pos(u, v, p, t, radius, h_s, theta_s,
+            dat_pi):  # This function gives the position of the satellite provided the given parameters
     '''
-    Computes geographical position of satelite
+    Computes geographical position of satellite
     :param u:
     :param v:
     :param p:
     :param t:
-    :param Radius:
+    :param radius:
     :param h_s:
     :param theta_s:
     :param dat_pi:
     :return:
     '''
-    x_s = (Radius + h_s) * (u * np.cos((2 * dat_pi * t) / p + theta_s) + v * np.sin(2 * dat_pi * t / p + theta_s))
-    return (x_s)
+    x_s = (radius + h_s) * (u * np.cos((2 * dat_pi * t) / p + theta_s) + v * np.sin(2 * dat_pi * t / p + theta_s))
+    return x_s
 
+
+logger = open('./satellite.log', 'w')  # start logfile to log computation
+
+linear_sat_dat = np.zeros((24 * 9))
+
+# height and Radius
+# Get the initial Satellite data
+dat_pi = np.nan
+c = np.nan
+R = np.nan
+sid_day = np.nan
+
+with open('./data.dat', 'r') as initial_loc:
+    logger.write('\n\n--- Reading data.dat ---\n\n')
+    for i, line in enumerate(initial_loc.readlines()):
+        current_line = np.float64(line[1:26])
+        description = line.split('/=')[1].strip()
+        if i == 0:
+            logger.writelines('pi = ' + str(current_line) + '\n')
+            dat_pi = current_line
+        elif i == 1:
+            logger.write('c = ' + str(current_line) + '\n')
+            c = current_line
+        elif i == 2:
+            logger.write('R = ' + str(current_line) + '\n')
+            R = current_line
+        elif i == 3:
+            logger.write('s = ' + str(current_line) + '\n')
+            sid_day = current_line
+        # Now store all the rest of the data in a satellite array#
+        else:  # i > 3:
+            logger.write(description + ' = ' + str(current_line) + '\n')
+            linear_sat_dat[i - 4] = current_line
+
+logger.write('\n\n--- End of data.dat ---\n\n')
 
 vehicle_input_str = sys.stdin.read().rstrip()
 pipe_input = np.array(vehicle_input_str.split('\n'))
+if pipe_input.shape[0] == 0:  # if there is no input throw an error
+    raise IOError('No satellite input provided. Pipe in input from file or other executable in standard UNIX fashion')
 num_steps = pipe_input.shape[0]
 path_data = np.empty(shape=(num_steps, 10))
 
@@ -52,28 +87,7 @@ for i, line in enumerate(pipe_input):
     if path_point.shape[0] == 10:
         path_data[i] = np.array(path_point, dtype='float')
 
-to_be_output = [];  # this will have the data from the satellites who are above the horizon appended at each step
-linear_sat_dat = np.zeros((24 * 9))
-
-# height and Radius
-# Get the initial Satellite data
-# initial_loc = open('./data.dat', 'r')
-with open('./data.dat', 'r') as initial_loc:
-    line_index = 0
-    for line in initial_loc.readlines():
-        current_line = np.float64(line[1:26])
-        if line_index == 0:
-            dat_pi = current_line
-        if line_index == 1:
-            c = current_line
-        if line_index == 2:
-            R = current_line
-        if line_index == 3:
-            sid_day = current_line
-        # Now store all the rest of the data in a satellite array#
-        if line_index > 3:
-            linear_sat_dat[line_index - 4] = current_line
-        line_index += 1
+to_be_output = []  # this will have the data from the satellites who are above the horizon appended at each step
 
 for ns in range(num_steps):
     prelim_path_data = path_data[ns, :]
@@ -115,16 +129,15 @@ for ns in range(num_steps):
         theta_s = init_sat_dat[kk, 8]
 
         # the initial time value is just the time at the car#
-        error = 1;
-        t_old = t_v;
-        while error > 3 * 10 ** -(17):
-            # new_t=t_v-(np.linalg.norm(v_pos_vec-sat_pos(u,v,p,t_old,R,h_s,theta_s,dat_pi),2))/c
-            iterator_sat_pos = sat_pos(u, v, p, t_old, R, h_s, theta_s, dat_pi);
+        error = 1
+        t_old = t_v
+        while error > 3 * 10 ** (-17):
+            iterator_sat_pos = sat_pos(u, v, p, t_old, R, h_s, theta_s, dat_pi)
             new_t = t_v - (np.sqrt(
                 (iterator_sat_pos[0] - v_pos_vec[0]) ** 2 + (iterator_sat_pos[1] - v_pos_vec[1]) ** 2 + (
-                            iterator_sat_pos[2] - v_pos_vec[2]) ** 2)) / c
+                        iterator_sat_pos[2] - v_pos_vec[2]) ** 2)) / c
             error = abs(t_old - new_t)
-            t_old = new_t;
+            t_old = new_t
 
         sat_signal_pos = sat_pos(u, v, p, t_old, R, h_s, theta_s, dat_pi)
         sat_step_data[kk, 0] = kk
@@ -134,8 +147,7 @@ for ns in range(num_steps):
         sat_step_data[kk, 4] = sat_signal_pos[2]
         # now check to see if those dudes are above the horizon#
         pos_vec_dot = (
-                    sat_signal_pos[0] * v_pos_vec[0] + sat_signal_pos[1] * v_pos_vec[1] + sat_signal_pos[2] * v_pos_vec[
-                2])
+                sat_signal_pos[0] * v_pos_vec[0] + sat_signal_pos[1] * v_pos_vec[1] + sat_signal_pos[2] * v_pos_vec[2])
         v_mag_sqd = np.linalg.norm(v_pos_vec) ** 2
         # now check to see if those dudes are above the horizon#
         if pos_vec_dot > v_mag_sqd:
@@ -145,3 +157,6 @@ output_array = np.squeeze(to_be_output)
 for point in output_array:
     sys.stdout.write('{:0.0f} {:6.16e} {:6.16e} {:6.16e} {:6.16e}\n'.format(point[0],
                                                                             point[1], point[2], point[3], point[4]))
+
+logger.close()
+# End of program

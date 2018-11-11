@@ -1,11 +1,8 @@
-import numpy as np
-import sys
-import random
 import math
+import random
+import sys
 
-# constants
-c = 299792458  # speed of light
-sid_day = 86164.0899999  # sidereal day in secs
+import numpy as np
 
 
 def rad2dms(rad):
@@ -22,6 +19,35 @@ def rad2dms(rad):
     secs = (dec_min - mins) * 60
     return deg, mins, secs
 
+
+logger = open('./receiver.log', 'w')
+
+dat_pi = np.nan
+c = np.nan
+R = np.nan
+sid_day = np.nan
+
+with open('./data.dat', 'r') as initial_loc:
+    logger.write('\n\n--- Reading data.dat ---\n\n')
+    for i, line in enumerate(initial_loc.readlines()):
+        current_line = np.float64(line[1:26])
+        if i == 0:
+            logger.writelines('pi = ' + str(current_line) + '\n')
+            dat_pi = current_line
+        elif i == 1:
+            logger.write('c = ' + str(current_line) + '\n')
+            c = current_line
+        elif i == 2:
+            logger.write('R = ' + str(current_line) + '\n')
+            R = current_line
+        elif i == 3:
+            logger.write('s = ' + str(current_line) + '\n')
+            sid_day = current_line
+        # Now store all the rest of the data in a satellite array#
+        else:  # i > 3:
+            break
+
+logger.write('\n\n--- End of data.dat ---\n\n')
 
 # do the case where we just find four satellites, and compute the coordinates from there#
 # this is the set of satellite data from one time step
@@ -145,9 +171,9 @@ for y in range(num_time_steps):
     # now we get lambda#
     if x > 0 and y > 0:
         lam = np.arctan(y / x)
-    if x < 0 and y > 0:
+    if x < 0 < y:
         lam = np.pi + np.arctan(y / x)
-    if x > 0 and y < 0:
+    if x > 0 > y:
         lam = 2 * np.pi + np.arctan(y / x)
 
     # lam_dms=dec2dms(lam)
@@ -176,3 +202,8 @@ for y in range(num_time_steps):
 
     to_be_output = [car_time, psi_dms[0], psi_dms[1], psi_dms[2], NS, lam_dms[0], lam_dms[1], lam_dms[2], EW, h]
     write_to_output.append(to_be_output)
+
+logger.close()
+# End of program
+
+
