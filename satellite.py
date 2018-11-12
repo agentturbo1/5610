@@ -94,7 +94,7 @@ for ns in range(num_steps):
     logger.flush()
     logger.write('\nStep: ' + str(ns) + '\n')
     prelim_path_data = path_data[ns, :]
-    logger.write('Read: {:0.16} {:0.16} {:0.16} {:0.16} {:0.16} {:0.16} {:0.16} {:0.16} {:0.16} {:0.16}\n'.format(
+    logger.write('Read: {:0.16f} {:0.16f} {:0.16f} {:0.16f} {:0.16f} {:0.16f} {:0.16f} {:0.16f} {:0.16f} {:0.16f}\n'.format(
         prelim_path_data[0], prelim_path_data[1], prelim_path_data[2], prelim_path_data[3], prelim_path_data[4],
         prelim_path_data[5], prelim_path_data[6], prelim_path_data[7], prelim_path_data[8], prelim_path_data[9]))
     # latitude angles

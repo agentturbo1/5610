@@ -163,9 +163,9 @@ for y in range(num_time_steps):
     # now we get psi#
     if x ** 2 + y ** 2 != 0:
         psi = np.arctan(z / np.sqrt(x ** 2 + y ** 2))
-    if x == 0 and y == 0 and z > 0:
+    elif x == 0 and y == 0 and z > 0:
         psi = np.pi / 2
-    if x == 0 and y == 0 and z < 0:
+    elif x == 0 and y == 0 and z < 0:
         psi = -1 * np.pi / 2
     NS = 1;
     if psi < 0:
@@ -175,9 +175,9 @@ for y in range(num_time_steps):
     # now we get lambda#
     if x > 0 and y > 0:
         lam = np.arctan(y / x)
-    if x < 0 < y:
+    elif x < 0 < y:
         lam = np.pi + np.arctan(y / x)
-    if x > 0 > y:
+    else:  # x > 0 > y:
         lam = 2 * np.pi + np.arctan(y / x)
 
     # lam_dms=dec2dms(lam)
@@ -191,23 +191,29 @@ for y in range(num_time_steps):
     extra_rot = (car_time / sid_day) * np.pi * 2
     adj_lam = lam - extra_rot
     # now we have lam make sure it is between 0 and pi#
-    if lam > 0 and lam < np.pi:
+    if 0 < lam < np.pi:
         EW = 1
-    if lam < 0 and np.abs(lam) < np.pi:
+    elif lam < 0 and np.abs(lam) < np.pi:
         EW = -1
         lam = np.abs(lam)
-    if lam < 0 and np.abs(lam) > np.pi:
+    elif lam < 0 and np.abs(lam) > np.pi:
         EW = 1
         lam = 2 * np.pi - np.abs(lam)
-    if lam > np.pi:
+    else:  # lam > np.pi:
         EW = -1;
         lam = 2 * np.pi - lam
     lam_dms = rad2dms(np.abs(adj_lam))
 
-    to_be_output = [car_time, psi_dms[0], psi_dms[1], psi_dms[2], NS, lam_dms[0], lam_dms[1], lam_dms[2], EW, h]
+    to_be_output = np.array([car_time, psi_dms[0], psi_dms[1], psi_dms[2], NS, lam_dms[0], lam_dms[1], lam_dms[2], EW, h])
     write_to_output.append(to_be_output)
+
+write_to_output = np.array(write_to_output)
+
+for point in write_to_output:
+    sys.stdout.flush()
+    sys.stdout.write(
+        '{:0.18} {:0.18} {:0.18} {:0.18} {:0.18} {:0.18} {:0.18} {:0.18} {:0.18} {:0.18}\n'.format(
+            point[0], point[1], point[2], point[3], point[4], point[5], point[6], point[7], point[8], point[9]))
 
 logger.close()
 # End of program
-
-
