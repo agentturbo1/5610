@@ -74,7 +74,7 @@ time = sat_input[0][1]
 
 for hh in range(num_signals):
     current_time = sat_input[hh][1]
-    if np.abs(current_time - time) > 2:
+    if np.abs(current_time - time) > .7:
         all_sat_data.append(all_sat_comp)
         all_sat_comp = []
         time = current_time
