@@ -1,12 +1,16 @@
-# Satellite Program#
-# ****Compute the Cartesian Location of the Vehicle****#
+#
+# Authors: Tyler Thompson, Jeanette Arteaga, Lukas Gust
+# 5610 Term Project
+# Python 2.x.x
+#
+# satellite.py#
+# ****Compute the Cartesian Location of the Vehicle****
 import math
 import sys
 
 import numpy as np
 
 
-# Now convert them to decimal
 def dms2rad(degrees, minutes, seconds):
     '''
     Converts degrees, minutes, seconds angles to a decimal radian angle
@@ -84,7 +88,7 @@ if pipe_input.shape[0] == 0:  # if there is no input throw an error
 num_steps = pipe_input.shape[0]
 path_data = np.empty(shape=(num_steps, 10))
 
-for i, line in enumerate(pipe_input):
+for i, line in enumerate(pipe_input):  # for each line in the input store it in an array and convert to float
     path_point = np.array(line.split(' '))
     if path_point.shape[0] == 10:
         path_data[i] = np.array(path_point, dtype='float')
@@ -168,6 +172,7 @@ for ns in range(num_steps):
 
 output_array = np.squeeze(to_be_output)
 for point in output_array:
+    sys.stdout.flush()
     sys.stdout.write('{:0.0f} {:6.16e} {:6.16e} {:6.16e} {:6.16e}\n'.format(point[0],
                                                                             point[1],
                                                                             point[2],

@@ -1,3 +1,9 @@
+#
+# Authors: Tyler Thompson, Jeanette Arteaga, Lukas Gust
+# 5610 Term Project
+# Python 2.x.x
+#
+# receiver.py
 import math
 import random
 import sys
@@ -207,7 +213,7 @@ for y in range(num_time_steps):
     to_be_output = np.array([car_time, psi_dms[0], psi_dms[1], psi_dms[2], NS, lam_dms[0], lam_dms[1], lam_dms[2], EW, h])
     write_to_output.append(to_be_output)
 
-write_to_output = np.array(write_to_output)
+write_to_output = np.squeeze(write_to_output)
 
 for point in write_to_output:
     sys.stdout.flush()
