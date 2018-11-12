@@ -90,13 +90,17 @@ all_sat_data = np.array(all_sat_data)
 num_time_steps = all_sat_data.shape[0]
 write_to_output = []
 for y in range(num_time_steps):
+    logger.write('Step: ' + str(y) + '\n')
     sat_data = np.squeeze(all_sat_data[y])
 
     num_sats = sat_data[:, 0].shape[0]  # the number of satellites above the horizon
     # I want to take 4 of the satellites we can see from random, and use their data to compute vehicle position
     test_indices = random.sample(range(num_sats), 4)
     four_sat_data = [sat_data[test_indices[0], :], sat_data[test_indices[1], :], sat_data[test_indices[2], :],
-                     sat_data[test_indices[3], :]];
+                     sat_data[test_indices[3], :]]
+    logger.write('\nSat Data:\n')
+    for data in four_sat_data:
+        logger.write('{:0.16} {:0.16} {:0.16} {:0.16} {:0.16}\n'.format(data[0], data[1], data[2], data[3], data[4]))
 
     # now we have the satellite data for that step, let's form the F matrix#
     sat1_pos = four_sat_data[0][2:5]
@@ -141,14 +145,14 @@ for y in range(num_time_steps):
         J33 = ((sat3_pos[2] - car_init_loc[2]) / np.linalg.norm(sat3_pos - car_init_loc)) - (
                 (sat4_pos[2] - car_init_loc[2]) / np.linalg.norm(sat4_pos - car_init_loc))
         J_Mat = [[J11, J12, J13], [J21, J22, J23], [J31, J32, J33]]
-        Jinv = np.linalg.inv(J_Mat)
+        Jinv = np.linalg.inv(J_Mat);
         diff_term = np.matmul(Jinv, F_mat)
         new_k = car_init_loc - diff_term
         step_num = step_num + 1;
         car_init_loc = new_k
 
         # now, we want to convert the location to degree minute and second
-        R = 6.367444500000000000 * 10 ** 6;
+        # R = 6.367444500000000000 * 10 ** 6;
 
     h = np.sqrt(car_init_loc[0] ** 2 + car_init_loc[1] ** 2 + car_init_loc[2] ** 2) - R
     x = car_init_loc[0]
