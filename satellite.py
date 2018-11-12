@@ -1,8 +1,9 @@
 # Satellite Program#
 # ****Compute the Cartesian Location of the Vehicle****#
-import numpy as np
-import sys
 import math
+import sys
+
+import numpy as np
 
 
 # Now convert them to decimal
